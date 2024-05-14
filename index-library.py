@@ -7,9 +7,21 @@ import boto3
 import boto3.session
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from bs4 import BeautifulSoup
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain_community.vectorstores import OpenSearchVectorSearch
+from opensearchpy import AWSV4SignerAuth
+from opensearchpy import RequestsHttpConnection
 
 # load the environment variables
 load_dotenv()
+
+if os.getenv("AWS_OPENSEARCH_DOMAIN_ENDPOINT") is None:
+    print("Please set the environment variables. Program will exit now.")
+    exit()
+
+#==========================================================================
+#====================== PREPARE DATA FOR EMBEDDINGS =======================
+#==========================================================================
 
 # connect to the database
 cnx = mysql.connector.connect(user=os.getenv('MYSQL_USER'), password=os.getenv('MYSQL_PASSWORD'),
@@ -71,7 +83,14 @@ resourcefiles_df = pd.merge(resourcefiles_df, edu_levels_df, on='resourceid', ho
 resourcefiles_df = pd.merge(resourcefiles_df, subject_areas_df, on='resourceid', how='left')
 resourcefiles_df = pd.merge(resourcefiles_df, parent_collections_df, on='resourceid', how='left')
 
+#==========================================================================
+#=========================== SETUP EMMBEDDINGS ============================
+#==========================================================================
 os.environ["AWS_PROFILE"] = 'currikiai'
+aws_opensearch_url = os.getenv("AWS_OPENSEARCH_DOMAIN_ENDPOINT")
+credentials = boto3.Session().get_credentials()
+region = 'us-east-1'
+awsauth = AWSV4SignerAuth(credentials, region)
 s3 = boto3.client('s3')
 
 # iterate over the resourcefiles dataframe to extract the text from the pdf files
@@ -121,6 +140,25 @@ for index, row in resourcefiles_df.iterrows():
             doc.metadata['subjectareas'] = row['subjectareas']
             doc.metadata['parentcollections'] = row['parentcollections']
             
+        # split the documents array into chunks of 500
+        bulk_size = 500
+        bulk_docs = [docs[i:i + bulk_size] for i in range(0, len(docs), bulk_size)]
+
+        for docs_chunk in bulk_docs:    
+            # get the embeddings
+            bedrock_client = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
+            embeddings = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=bedrock_client)
+            vectorstore = OpenSearchVectorSearch.from_documents(
+                docs_chunk,
+                embeddings,
+                opensearch_url=aws_opensearch_url,
+                http_auth=awsauth,
+                timeout=300,
+                use_ssl=True,
+                verify_certs=True,
+                connection_class=RequestsHttpConnection,
+                index_name="curriki-library-index"
+            )
 
         print(docs)
         print(f"*** {len(docs)} documents created for {resourcefile_s3_name} ***")
