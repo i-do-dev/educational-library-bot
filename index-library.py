@@ -89,7 +89,7 @@ resourcefiles_df = pd.merge(resourcefiles_df, parent_collections_df, on='resourc
 os.environ["AWS_PROFILE"] = 'currikiai'
 aws_opensearch_url = os.getenv("AWS_OPENSEARCH_DOMAIN_ENDPOINT")
 credentials = boto3.Session().get_credentials()
-region = 'us-east-1'
+region = 'us-west-2'
 awsauth = AWSV4SignerAuth(credentials, region)
 s3 = boto3.client('s3')
 
@@ -97,7 +97,7 @@ s3 = boto3.client('s3')
 for index, row in resourcefiles_df.iterrows():
     file_name = row['filename']
     s3_path = row['s3path']
-    # get components of the s3 path which is in the format: "https://currikicdn.s3-us-west-2.amazonaws.com/resourcedocs/54d21ccf0e69b.pdf". here first 'currikicdn' is bucket name. Path after "https://currikicdn.s3-us-west-2.amazonaws.com" is the path in the bucket for the file to be downloaded.
+    
     s3_bucket = s3_path.split('/')[2].split('.')[0]
     resourcefile_s3_download_path = '/'.join(s3_path.split('/')[3:])
     resourcefile_s3_name = resourcefile_s3_download_path.split('/')[-1]
@@ -134,7 +134,7 @@ for index, row in resourcefiles_df.iterrows():
             doc.metadata['title'] = row['title']
             doc.metadata['pageurl'] = pageurl
             doc.metadata['description'] = description_text
-            doc.metadata['additionalcontent'] = content_text
+            doc.metadata['content'] = content_text
             doc.metadata['keywords'] = row['keywords']
             doc.metadata['educationlevels'] = row['educationlevels']
             doc.metadata['subjectareas'] = row['subjectareas']
@@ -146,7 +146,7 @@ for index, row in resourcefiles_df.iterrows():
 
         for docs_chunk in bulk_docs:    
             # get the embeddings
-            bedrock_client = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
+            bedrock_client = boto3.client(service_name='bedrock-runtime', region_name='us-west-2')
             embeddings = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=bedrock_client)
             vectorstore = OpenSearchVectorSearch.from_documents(
                 docs_chunk,
