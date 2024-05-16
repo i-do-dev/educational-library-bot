@@ -127,7 +127,7 @@ for index, row in resourcefiles_df.iterrows():
         description_text = ' '.join(description_text.split())
 
         # join row['pageurl'] with base url https://www.currikilibrary.org/
-        pageurl = 'https://www.currikilibrary.org/' + row['pageurl']
+        pageurl = 'https://www.currikilibrary.org/oer/' + row['pageurl']
 
         # iterate over the documents and add metadata to each document all columns of the resourcefiles_df
         for i, doc in enumerate(docs):

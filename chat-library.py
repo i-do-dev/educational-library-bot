@@ -12,6 +12,10 @@ from langchain.chains.query_constructor.base import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage
+from langchain.chains.retrieval import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain import hub
+import random
 
 # load the environment variables
 load_dotenv()
@@ -71,12 +75,12 @@ async def on_chat_start():
         ),
         AttributeInfo(
             name="educationlevels",
-            description="Education levels of the Open Education Resource (OER) in the Curriki Library. It can be one or more of the following: displayname, Elementary School, Grade 1, Grade 10, Grade 11, Grade 12, Grade 2, Grade 3, Grade 4, Grade 5, Grade 6, Grade 7, Grade 8, Grade 9, Graduate, Higher Education, HighSchool, K, Lifelong Learning, Middle School, Other, Pre-K, PreKto12, Professional Education & Development, Special Education, Undergraduate-Lower Division, Undergraduate-Upper Division, Vocational Training",
+            description="Education levels of the Open Education Resource (OER) in the Curriki Library",
             type="string",
         ),
         AttributeInfo(
             name="subjectareas",
-            description="Subject areas of the Open Education Resource (OER) in the Curriki Library. It can be one or more of the following: Accessibility, Special Education, Adult Education, Agriculture, Algebra, Alphabet, Anthropology, Applied Mathematics, Architecture, Arithmetic, Astronomy, Bilingual Education, Biology, Body Systems & Senses, Botany, Business, Calculus, Careers, Careers in CS, Chemistry, Civics, Classroom Management, Coding, Computational Thinking, Computer Graphics , Computers in Society, Computing and Data Analysis , Cultural Awareness, Current Events, Dance, Data Analysis & Probability, Drama/Dramatics, Early Childhood Education, Earth Science, Ecology, Economics, Education Administration/Leadership, Educational Foundations/Research, Educational Psychology, Engineering, Entrepreneurship, Environmental Health, Equations, Estimation, Evaluating Sources, Film, General, General Science, Geography, Geology, Geometry, Global Awareness, Government, Grammar, Usage & Awareness, Grammar, Usage & Mechanics, Graphing, History, History of Science, History/Local, Human Computer Interaction, Human Sexuality, Informal Education, Instructional Design, Integrating Technology into the Classroom, Journalism, Life Sciences, Linguistics, Listening & Speaking, Listening Comprehension, Literature, Measurement, Measurement & Evaluation, Media Ethics, Mental/Emotional Health, Mentoring, Meteorology, Multicultural Education, Music, Natural History, Number Sense & Operations, Nutrition, Occupational Home Economics, Oceanography, Online Safety, Paleontology, Patterns, Phonics, Photography, Physical Education, Physical Sciences, Physics, Poetry, Political Systems, Popular Culture, Privacy and Security, Problem Solving, Process Skills, Programming Languages, Psychology, Reading, Reading Comprehension, Religion, Research, Research Methods, Robotics, Safety/Smoking/Substance Abuse Prevention, School-to-Work, Sociology, Speaking, Spelling, StandardsAlignment, State History, Statistics, Story Telling, Teaching Techniques/Best Practices, Technology, Thinking & Problem Solving, Trade & Industrial, Trigonometry, United States Government, United States History, Using Multimedia & the Internet, Visual Arts, Vocabulary, Web Design, Web programming, World History, Writing",
+            description="Subject areas of the Open Education Resource (OER) in the Curriki Library",
             type="string",
         ),
         AttributeInfo(
@@ -92,11 +96,43 @@ async def on_chat_start():
         model_id="anthropic.claude-v2",
         model_kwargs={"temperature": 0.1},
     )
-
-    chain = SelfQueryRetriever.from_llm(
+    query_retriever = SelfQueryRetriever.from_llm(
         llm=llm,
         vectorstore=vectorstore,
         metadata_field_info=metadata_field_info,
-        document_content_description=document_content_description,
+        document_contents=document_content_description,
+        return_source_documents=True
     )
     
+    qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+    chain = create_retrieval_chain(
+        retriever=query_retriever,
+        combine_docs_chain=create_stuff_documents_chain(llm, prompt=qa_chat_prompt)
+    )
+    cl.user_session.set("chain", chain)
+    cl.user_session.set("retriever", query_retriever)
+    
+@cl.on_message
+async def on_message(message):
+
+    #query_retriever = cl.user_session.get("retriever")
+    #docs = query_retriever.invoke("20th century economist who might mentioned in education level of Graduate,")
+    chain = cl.user_session.get("chain")
+    response = chain.invoke({"input": message.content})
+    answer = HumanMessage(content=response['answer']).content
+    oer_references = []
+    # iterate over the context
+    for index, context in enumerate(response['context']):
+        oer_title = context.metadata['title']
+        oer_reference_text = f"Title: {oer_title}\n\nURL: {context.metadata['pageurl']}\n\nSource File: {context.metadata['source']}\n\nPage:{context.metadata['page']}\n\n"
+        oer_reference_text += f"\n\nEducation Levels: {context.metadata['educationlevels']}\n\nSubject Areas: {context.metadata['subjectareas']}\n\nParent Collections: {context.metadata['parentcollections']}"
+        oer_reference_text += f"\n\nContent{context.page_content}"
+        oer_references.append(
+            cl.Text(content=oer_reference_text, name=f"{oer_title} ({index})")
+        )
+    oer_reference_names = [oer_reference.name for oer_reference in oer_references]
+    
+    if oer_reference_names:
+        answer += f"\n\nSources: {', '.join(oer_reference_names)}"
+
+    await cl.Message(content=answer, elements=oer_references).send()
