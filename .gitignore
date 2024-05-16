@@ -1,6 +1,5 @@
 .env
 venv
-.chainlit
 .files
 chroma_db
 curriki.db
