@@ -35,7 +35,7 @@ async def on_chat_start():
 
     bedrock_embeddings = BedrockEmbeddings(credentials_profile_name=os.environ["AWS_PROFILE"], region_name=region)
     vectorstore = OpenSearchVectorSearch(opensearch_url=aws_opensearch_url, 
-        index_name='curriki-library-index', 
+        index_name='currikilibrary-index', 
         embedding_function=bedrock_embeddings,
         http_auth=awsauth,
         timeout=300,
@@ -84,8 +84,8 @@ async def on_chat_start():
             type="string",
         ),
         AttributeInfo(
-            name="parentcollections",
-            description="Parent collections of the Open Education Resource (OER) in the Curriki Library",
+            name="collections",
+            description="Collections of the Open Education Resource (OER) in the Curriki Library",
             type="string",
         )
     ]
@@ -125,8 +125,8 @@ async def on_message(message):
     for index, context in enumerate(response['context']):
         oer_title = context.metadata['title']
         oer_reference_text = f"Title: {oer_title}\n\nURL: {context.metadata['pageurl']}\n\nSource File: {context.metadata['source']}\n\nPage:{context.metadata['page']}\n\n"
-        oer_reference_text += f"\n\nEducation Levels: {context.metadata['educationlevels']}\n\nSubject Areas: {context.metadata['subjectareas']}\n\nParent Collections: {context.metadata['parentcollections']}"
-        oer_reference_text += f"\n\nContent{context.page_content}"
+        oer_reference_text += f"\n\nEducation Levels: {context.metadata['educationlevels']}\n\nSubject Areas: {context.metadata['subjectareas']}\n\nCollections: {context.metadata['collections']}"
+        oer_reference_text += f"\n\nContent: \n{context.page_content}"
         oer_references.append(
             cl.Text(content=oer_reference_text, name=f"{oer_title} ({index})")
         )
