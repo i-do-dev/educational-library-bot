@@ -5,3 +5,4 @@ chroma_db
 curriki.db
 __pycache__
 *.pdf
+*.csv
