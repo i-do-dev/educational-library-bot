@@ -50,47 +50,32 @@ async def on_chat_start():
     metadata_field_info = [
         AttributeInfo(
             name="title",
-            description="Title of the Open Education Resource (OER) in the Curriki Library",
-            type="string",
-        ),
-        AttributeInfo(
-            name="pageurl",
-            description="URL of the Open Education Resource (OER) page in the Curriki Library",
-            type="string",
-        ),
-        AttributeInfo(
-            name="description",
-            description="Description of the Open Education Resource (OER) in the Curriki Library",
-            type="string",
-        ),
-        AttributeInfo(
-            name="content",
-            description="Additional information of the Open Education Resource (OER) in the Curriki Library",
+            description="title of an open education resource",
             type="string",
         ),
         AttributeInfo(
             name="keywords",
-            description="Keywords which can be used to search and associate the Open Education Resource (OER) in the Curriki Library",
+            description="keywords are used to search an open education resource",
             type="string",
         ),
         AttributeInfo(
             name="educationlevels",
-            description="Education levels of the Open Education Resource (OER) in the Curriki Library",
+            description="education levels for which an open education resource is useful.",
             type="string",
         ),
         AttributeInfo(
             name="subjectareas",
-            description="Subject areas of the Open Education Resource (OER) in the Curriki Library",
+            description="subject areas an open education resource is related to",
             type="string",
         ),
         AttributeInfo(
             name="collections",
-            description="Collections of the Open Education Resource (OER) in the Curriki Library",
+            description="collections in which an open education resource is organized",
             type="string",
         )
     ]
 
-    document_content_description = "The content from one or more Open Education Resources (OERs) in the Curriki Library"
+    document_content_description = "open education resource which is known as oer"
 
     llm = ChatBedrock(
         model_id="anthropic.claude-v2",
