@@ -122,12 +122,8 @@ for index, row in resourcefiles_df.iterrows():
     resourcefile_s3_download_path = '/'.join(s3_path.split('/')[3:])
     resourcefile_s3_name = resourcefile_s3_download_path.split('/')[-1]
 
-    try:
-        # download resourcefile_s3_download_path from s3_bucket
-        s3.download_file(s3_bucket, resourcefile_s3_download_path, resourcefile_s3_name)
-    except Exception as e:
-        print(f"Exception occurred while downloading file: {e}")
-        continue
+    # download resourcefile_s3_download_path from s3_bucket
+    s3.download_file(s3_bucket, resourcefile_s3_download_path, resourcefile_s3_name)
 
     fileLoader = None
     # load the pdf file if row['ext'] is 'pdf'
