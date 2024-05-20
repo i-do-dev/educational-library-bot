@@ -46,8 +46,8 @@ cnx = mysql.connector.connect(user=os.getenv('MYSQL_USER'), password=os.getenv('
                               database=os.getenv('MYSQL_DATABASE'))
 cursor = cnx.cursor()
 
-query_offset = 6
-query_limit = 50
+query_offset = 51
+query_limit = 100
 
 # query to get the resourcefiles
 resourcefiles_query = (f"""
@@ -147,11 +147,21 @@ for index, row in resourcefiles_df.iterrows():
 
         # iterate over the documents and add metadata to each document all columns of the resourcefiles_df
         for i, doc in enumerate(docs):
+            if i == 0:
+                doc.page_content = f"""
+                Open Education Resource Title: {row['title']} 
+                \n Open Education Resource Description: {description_text} 
+                \n Open Education Resource Content: {content_text}
+                \n {doc.page_content}
+                """
+            
             doc.metadata['title'] = row['title']
             doc.metadata['pageurl'] = pageurl
             doc.metadata['description'] = description_text
             doc.metadata['content'] = content_text
-            doc.metadata['keywords'] = row['keywords']
+            # split row['keywords'] by space and join with comma and make string lowercase
+            keywords = ', '.join(row['keywords'].split()).lower()
+            doc.metadata['keywords'] = keywords
             doc.metadata['educationlevels'] = row['educationlevels']
             doc.metadata['subjectareas'] = row['subjectareas']
             doc.metadata['collections'] = row['collections']
@@ -173,7 +183,7 @@ for index, row in resourcefiles_df.iterrows():
                 use_ssl=True,
                 verify_certs=True,
                 connection_class=RequestsHttpConnection,
-                index_name="currikilibrary-index"
+                index_name="curriki-oer-library-index"
             )
             print(f"fileid:{row['fileid']} -- {len(docs_chunk)} chunks saved ....")
             print('-----------------------------------')

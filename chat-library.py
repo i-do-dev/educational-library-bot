@@ -35,7 +35,7 @@ async def on_chat_start():
 
     bedrock_embeddings = BedrockEmbeddings(credentials_profile_name=os.environ["AWS_PROFILE"], region_name=region)
     vectorstore = OpenSearchVectorSearch(opensearch_url=aws_opensearch_url, 
-        index_name='currikilibrary-index', 
+        index_name='curriki-oer-library-index', 
         embedding_function=bedrock_embeddings,
         http_auth=awsauth,
         timeout=300,
@@ -60,7 +60,7 @@ async def on_chat_start():
         ),
         AttributeInfo(
             name="educationlevels",
-            description="education levels for which an open education resource is useful.",
+            description="education levels for which an open education resource is useful",
             type="string",
         ),
         AttributeInfo(

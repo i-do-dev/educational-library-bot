@@ -77,10 +77,10 @@ This section provides instructions on how to set up the project's environment to
    Once you've completed the setup steps, you can start the chatbot using the following command:
 
    ```bash
-   chainlit run chat.py --port 80
+   chainlit run chat-library.py --port 80
    ```
 
-   Replace `chat.py` with the actual filename of your main chatbot script if it's named differently. This command instructs Chainlit to run the specified Python script (`chat.py`) and exposes it on port 80 (you can change the port number if needed).
+   Replace `chat-library.py` with the actual filename of your main chatbot script if it's named differently. This command instructs Chainlit to run the specified Python script (`chat-library.py`) and exposes it on port 80 (you can change the port number if needed).
 
    This will launch your chatbot in a web interface accessible from any web browser on your machine by visiting `http://localhost:80` (or the port you specified).
 
