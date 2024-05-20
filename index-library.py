@@ -36,6 +36,10 @@ db_connection.commit()
 cursor_lite.execute('SELECT * FROM processed_resourcefile;')
 processed_resourcefile_id = cursor_lite.fetchone()[0]
 
+""" 
+db_connection.execute('UPDATE processed_resourcefile SET fileid = ?;', (1451,))
+db_connection.commit()
+exit() """
 #==========================================================================
 #====================== PREPARE DATA FOR EMBEDDINGS =======================
 #==========================================================================
@@ -46,7 +50,7 @@ cnx = mysql.connector.connect(user=os.getenv('MYSQL_USER'), password=os.getenv('
                               database=os.getenv('MYSQL_DATABASE'))
 cursor = cnx.cursor()
 
-query_offset = 51
+query_offset = 0
 query_limit = 100
 
 # query to get the resourcefiles
@@ -118,8 +122,12 @@ for index, row in resourcefiles_df.iterrows():
     resourcefile_s3_download_path = '/'.join(s3_path.split('/')[3:])
     resourcefile_s3_name = resourcefile_s3_download_path.split('/')[-1]
 
-    # download resourcefile_s3_download_path from s3_bucket
-    s3.download_file(s3_bucket, resourcefile_s3_download_path, resourcefile_s3_name)
+    try:
+        # download resourcefile_s3_download_path from s3_bucket
+        s3.download_file(s3_bucket, resourcefile_s3_download_path, resourcefile_s3_name)
+    except Exception as e:
+        print(f"Exception occurred while downloading file: {e}")
+        continue
 
     fileLoader = None
     # load the pdf file if row['ext'] is 'pdf'
