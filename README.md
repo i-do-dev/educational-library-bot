@@ -16,17 +16,17 @@ This section provides instructions on how to set up the project's environment to
    Before setting up the environment, clone this repository from GitHub using the following command:
 
    ```bash
-   git clone https://github.com/i-do-dev/educational-library-bot
+   git clone https://github.com/i-do-dev/educational-bot
    ```
 
-   This will clone the repository into a local directory named `educational-library-bot`. You can change this name if you prefer.
+   This will clone the repository into a local directory named `educational-bot`. You can change this name if you prefer.
 
 2. **Change Directory:**
 
    Navigate into the project directory using the following command:
 
    ```bash
-   cd educational-library-bot
+   cd educational-bot
    ```
 
 ## Setting Up the Environment
@@ -71,22 +71,25 @@ This section provides instructions on how to set up the project's environment to
    (Optional) After installation, you can try running a simple script from your project to ensure everything is set up correctly.
 
 ## Running the Chatbot
+1. **Indexing Data**
 
-1. **Start the Bot:**
+   In order to index the data you will run following script:
+
+   ```bash
+   python index.py
+   ```
+
+2. **Start the Bot:**
 
    Once you've completed the setup steps, you can start the chatbot using the following command:
 
    ```bash
-   chainlit run chat-library.py --port 80
+   chainlit run chat.py --port 80
    ```
 
-   Replace `chat-library.py` with the actual filename of your main chatbot script if it's named differently. This command instructs Chainlit to run the specified Python script (`chat-library.py`) and exposes it on port 80 (you can change the port number if needed).
+   This command instructs Chainlit to run the specified Python script (`chat.py`) and exposes it on port 80 (you can change the port number if needed).
 
    This will launch your chatbot in a web interface accessible from any web browser on your machine by visiting `http://localhost:80` (or the port you specified).
 
-**Note:**
-
-* Replace `venv` with the actual name you gave to your virtual environment.
-* Deactivate the virtual environment when you're done working on the project by running `deactivate` in your terminal.
 
 By following these steps, you'll have a properly configured environment to run this Python chatbot project using Python 3.12.1 (or a compatible version) and its dependencies isolated within the virtual environment. You can then launch the chatbot using the provided command.
