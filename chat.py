@@ -113,7 +113,7 @@ async def on_message(message):
         oer_reference_text += f"\n\nEducation Levels: {context.metadata['educationlevels']}\n\nSubject Areas: {context.metadata['subjectareas']}\n\nCollections: {context.metadata['collections']}"
         oer_reference_text += f"\n\nContent: \n{context.page_content}"
         oer_references.append(
-            cl.Text(content=oer_reference_text, name=f"{oer_title} ({index})")
+            cl.Text(content=oer_reference_text, name=f"{oer_title} ({index})", display="side")
         )
     oer_reference_names = [oer_reference.name for oer_reference in oer_references]
     
