@@ -173,7 +173,10 @@ for index, row in resourcefiles_df.iterrows():
             doc.metadata['description'] = description_text
             doc.metadata['content'] = content_text
             # split row['keywords'] by space and join with comma and make string lowercase
-            keywords = ', '.join(row['keywords'].split()).lower()
+            if row['keywords'] is not None:
+                keywords = ', '.join(row['keywords'].split()).lower()
+            else:
+                keywords = ''
             doc.metadata['keywords'] = keywords
             doc.metadata['educationlevels'] = row['educationlevels']
             doc.metadata['subjectareas'] = row['subjectareas']
